@@ -24,8 +24,10 @@
 package main
 
 import (
+	"context"
 	json "encoding/json"
 	"fmt"
+	"sync"
 	"time"
 
 	"github.com/shirou/gopsutil/mem"
@@ -39,8 +41,7 @@ import (
 // ProbeHandler describes a memory probe handler.
 // It implements the probe.Handler interface.
 type ProbeHandler struct {
-	Ctx  probes.Context
-	quit chan struct{}
+	Ctx probes.Context
 }
 
 // Usage defines how the topology metadata will look like. Tags below
@@ -53,17 +54,21 @@ type Usage struct {
 	UsedPercent int64
 }
 
-// Start the handler. Implements the probe.Handler interface.
-func (p *ProbeHandler) Start() error {
+// Do adds memory to the node metadata, updating periodically
+// Implements probes.handler
+func (p *ProbeHandler) Do(ctx context.Context, wg *sync.WaitGroup) error {
+	wg.Add(1)
 	// start a goroutine in order to update the graph
 	go func() {
+		defer wg.Done()
+
 		// update the graph each five seconds
 		ticker := time.NewTicker(5 * time.Second)
 		defer ticker.Stop()
 
 		for {
 			select {
-			case <-p.quit:
+			case <-ctx.Done():
 				// got a message on the quit chan
 				return
 			case <-ticker.C:
@@ -94,17 +99,14 @@ func (p *ProbeHandler) Start() error {
 	return nil
 }
 
-// Stop the handler. Implements the probe.Handler interface.
-func (p *ProbeHandler) Stop() {
-	p.quit <- struct{}{}
-}
+// NewProbe returns a new topology memory probe
+func NewProbe(ctx probes.Context, bundle *probe.Bundle) (probe.Handler, error) {
 
-// NewAgentProbe returns a new topology memory probe
-func NewAgentProbe(ctx probes.Context, bundle *probe.Bundle) (probes.Handler, error) {
-	return &ProbeHandler{
-		Ctx:  ctx,
-		quit: make(chan struct{}),
-	}, nil
+	p := &ProbeHandler{
+		Ctx: ctx,
+	}
+
+	return probes.NewProbeWrapper(p), nil
 }
 
 // MetadataDecoder implements a json message raw decoder. It is used
@@ -120,8 +122,8 @@ func MetadataDecoder(raw json.RawMessage) (getter.Getter, error) {
 	return &usage, nil
 }
 
-// RegisterDecoders registers metadata decoders
-func RegisterDecoders() {
+// Register registers metadata decoders
+func Register() {
 	// register the MemoryDecoder so that the graph knows how to decode the
 	// Memory metadata field.
 	graph.NodeMetadataDecoders["Memory"] = MetadataDecoder
