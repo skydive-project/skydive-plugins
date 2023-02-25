@@ -3,18 +3,11 @@ module github.com/skydive-project/skydive-plugins/memory
 go 1.14
 
 require (
-	github.com/juju/clock v0.0.0-20190205081909-9c5c9712527c // indirect
-	github.com/juju/errors v0.0.0-20190806202954-0232dcc7464d // indirect
-	github.com/juju/retry v0.0.0-20180821225755-9058e192b216 // indirect
-	github.com/juju/testing v0.0.0-20190723135506-ce30eb24acd2 // indirect
-	github.com/juju/utils v0.0.0-20180820210520-bf9cc5bdd62d // indirect
-	github.com/juju/version v0.0.0-20180108022336-b64dbd566305 // indirect
-	github.com/mailru/easyjson v0.7.1
-	github.com/networkservicemesh/networkservicemesh v0.1.0 // indirect
+	github.com/mailru/easyjson v0.7.1 // indirect
 	github.com/shirou/gopsutil v2.18.12+incompatible
 	github.com/skydive-project/skydive v0.26.1-0.20200514162914-4521c89fa0ac
-	golang.org/x/sys v0.0.0-20200515095857-1151b9dac4a9 // indirect
-	golang.org/x/tools v0.0.0-20200519015757-0d0afa43d58a // indirect
+	golang.org/x/net v0.0.0-20200226121028-0de0cce0169b // indirect
+	golang.org/x/sys v0.1.0 // indirect
 )
 
 replace (
